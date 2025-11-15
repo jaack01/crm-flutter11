@@ -8,6 +8,7 @@ import '../blocs/backup/backup_bloc.dart';
 import '../blocs/order/order_bloc.dart';
 import '../blocs/service/service_bloc.dart';
 import '../blocs/payment/payment_bloc.dart';
+import '../blocs/pricing/pricing_bloc.dart';
 import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/customers/customers_page.dart';
@@ -19,6 +20,7 @@ import '../pages/orders/order_details_page.dart';
 import '../pages/services/services_page.dart';
 import '../pages/payments/payments_page.dart';
 import '../pages/item_types/item_types_page.dart';
+import '../pages/pricing/service_pricing_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -37,6 +39,7 @@ class AppRouter {
   static const String editOrder = '/orders/edit/:id';
   static const String services = '/services';
   static const String itemTypes = '/item-types';
+  static const String pricing = '/pricing';
   static const String payments = '/payments';
   static const String inventory = '/inventory';
   static const String employees = '/employees';
@@ -138,6 +141,9 @@ class AppRouter {
                 BlocProvider<ServiceBloc>(
                   create: (context) => getIt<ServiceBloc>(),
                 ),
+                BlocProvider<PricingBloc>(
+                  create: (context) => getIt<PricingBloc>(),
+                ),
               ],
               child: const CreateOrderPage(),
             );
@@ -178,6 +184,25 @@ class AppRouter {
             return BlocProvider<ServiceBloc>(
               create: (context) => getIt<ServiceBloc>(),
               child: const ItemTypesPage(),
+            );
+          },
+        ),
+
+        // Service Pricing Matrix
+        GoRoute(
+          path: pricing,
+          name: 'pricing',
+          builder: (BuildContext context, GoRouterState state) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<PricingBloc>(
+                  create: (context) => getIt<PricingBloc>(),
+                ),
+                BlocProvider<ServiceBloc>(
+                  create: (context) => getIt<ServiceBloc>(),
+                ),
+              ],
+              child: const ServicePricingPage(),
             );
           },
         ),

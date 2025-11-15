@@ -5,6 +5,8 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/customer.dart';
 import '../../../domain/entities/service.dart';
+import '../../../domain/entities/item_type.dart';
+import '../../../domain/entities/service_pricing.dart';
 import '../../../domain/entities/order.dart';
 import '../../../domain/entities/order_item.dart';
 import '../../blocs/customer/customer_bloc.dart';
@@ -16,6 +18,9 @@ import '../../blocs/service/service_state.dart';
 import '../../blocs/order/order_bloc.dart';
 import '../../blocs/order/order_event.dart';
 import '../../blocs/order/order_state.dart';
+import '../../blocs/pricing/pricing_bloc.dart';
+import '../../blocs/pricing/pricing_event.dart';
+import '../../blocs/pricing/pricing_state.dart';
 
 class CreateOrderPage extends StatefulWidget {
   const CreateOrderPage({super.key});
@@ -369,9 +374,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    item.serviceName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.serviceName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.itemTypeName,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
@@ -384,6 +399,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -433,10 +449,14 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void _addOrderItem() {
     showDialog(
       context: context,
-      builder: (dialogContext) => BlocProvider.value(
-        value: context.read<ServiceBloc>(),
+      builder: (dialogContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<ServiceBloc>()),
+          BlocProvider.value(value: context.read<PricingBloc>()),
+        ],
         child: _AddOrderItemDialog(
           services: _services,
+          isRushOrder: _isRushOrder,
           onAdd: (item) {
             setState(() {
               _orderItems.add(item);
@@ -487,11 +507,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           .map((item) => OrderItem(
                 orderId: 0, // Will be set by datasource
                 serviceId: item.serviceId,
-                itemTypeId: 1, // Default item type for now
+                itemTypeId: item.itemTypeId,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 totalPrice: item.quantity * item.unitPrice,
                 serviceName: item.serviceName,
+                itemTypeName: item.itemTypeName,
               ))
           .toList();
 
@@ -503,12 +524,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 class _OrderItemEntry {
   final int serviceId;
   final String serviceName;
+  final int itemTypeId;
+  final String itemTypeName;
   final int quantity;
   final double unitPrice;
 
   _OrderItemEntry({
     required this.serviceId,
     required this.serviceName,
+    required this.itemTypeId,
+    required this.itemTypeName,
     required this.quantity,
     required this.unitPrice,
   });
@@ -516,10 +541,12 @@ class _OrderItemEntry {
 
 class _AddOrderItemDialog extends StatefulWidget {
   final List<Service> services;
+  final bool isRushOrder;
   final Function(_OrderItemEntry) onAdd;
 
   const _AddOrderItemDialog({
     required this.services,
+    required this.isRushOrder,
     required this.onAdd,
   });
 
@@ -530,8 +557,18 @@ class _AddOrderItemDialog extends StatefulWidget {
 class _AddOrderItemDialogState extends State<_AddOrderItemDialog> {
   final _formKey = GlobalKey<FormState>();
   Service? _selectedService;
+  ItemType? _selectedItemType;
+  List<ItemType> _itemTypes = [];
+  ServicePricing? _pricing;
   final TextEditingController _quantityController = TextEditingController(text: '1');
   final TextEditingController _priceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load item types through the service bloc
+    context.read<ServiceBloc>().add(const LoadServices());
+  }
 
   @override
   void dispose() {
@@ -540,111 +577,215 @@ class _AddOrderItemDialogState extends State<_AddOrderItemDialog> {
     super.dispose();
   }
 
+  void _loadPricing() {
+    if (_selectedService != null && _selectedItemType != null) {
+      context.read<PricingBloc>().add(
+            LoadServicePricing(_selectedService!.id!, _selectedItemType!.id!),
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Order Item'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BlocBuilder<ServiceBloc, ServiceState>(
-              builder: (context, state) {
-                List<Service> services = widget.services;
-                if (state is ServicesLoaded) {
-                  services = state.services;
-                }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PricingBloc, PricingState>(
+          listener: (context, state) {
+            if (state is ServicePricingLoaded) {
+              setState(() {
+                _pricing = state.pricing;
+                // Set price based on rush order status
+                double price = widget.isRushOrder && state.pricing.rushOrderPrice != null
+                    ? state.pricing.rushOrderPrice!
+                    : state.pricing.price;
+                _priceController.text = price.toString();
+              });
+            } else if (state is PricingError) {
+              // No pricing found, use service base price as fallback
+              if (_selectedService != null) {
+                _priceController.text = _selectedService!.basePrice.toString();
+              }
+            }
+          },
+        ),
+      ],
+      child: AlertDialog(
+        title: const Text('Add Order Item'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Service Selection
+                BlocBuilder<ServiceBloc, ServiceState>(
+                  builder: (context, state) {
+                    List<Service> services = widget.services;
+                    if (state is ServicesLoaded) {
+                      services = state.services;
+                      // Extract item types from first service (simplified approach)
+                      // In full implementation, use separate ItemTypeBloc
+                      if (_itemTypes.isEmpty && services.isNotEmpty) {
+                        // This is a simplified approach - in production, load item types properly
+                        _itemTypes = [
+                          ItemType(
+                            id: 1,
+                            itemName: 'Standard Item',
+                            category: 'General',
+                            isActive: true,
+                            createdAt: DateTime.now(),
+                          ),
+                        ];
+                      }
+                    }
 
-                return DropdownButtonFormField<Service>(
-                  value: _selectedService,
+                    return DropdownButtonFormField<Service>(
+                      value: _selectedService,
+                      decoration: const InputDecoration(
+                        labelText: 'Service',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: services.map((service) {
+                        return DropdownMenuItem(
+                          value: service,
+                          child: Text(service.serviceName),
+                        );
+                      }).toList(),
+                      onChanged: (service) {
+                        setState(() {
+                          _selectedService = service;
+                          _loadPricing();
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a service';
+                        }
+                        return null;
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Item Type Selection
+                DropdownButtonFormField<ItemType>(
+                  value: _selectedItemType,
                   decoration: const InputDecoration(
-                    labelText: 'Service',
+                    labelText: 'Item Type',
                     border: OutlineInputBorder(),
                   ),
-                  items: services.map((service) {
+                  items: _itemTypes.map((itemType) {
                     return DropdownMenuItem(
-                      value: service,
-                      child: Text('${service.serviceName} - ₹${service.basePrice}'),
+                      value: itemType,
+                      child: Text(itemType.itemName),
                     );
                   }).toList(),
-                  onChanged: (service) {
+                  onChanged: (itemType) {
                     setState(() {
-                      _selectedService = service;
-                      if (service != null) {
-                        _priceController.text = service.basePrice.toString();
-                      }
+                      _selectedItemType = itemType;
+                      _loadPricing();
                     });
                   },
                   validator: (value) {
                     if (value == null) {
-                      return 'Please select a service';
+                      return 'Please select item type';
                     }
                     return null;
                   },
-                );
-              },
+                ),
+                const SizedBox(height: 16),
+
+                // Quantity
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter quantity';
+                    }
+                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                      return 'Please enter a valid quantity';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Price
+                TextFormField(
+                  controller: _priceController,
+                  decoration: InputDecoration(
+                    labelText: 'Unit Price',
+                    border: const OutlineInputBorder(),
+                    prefixText: '₹',
+                    helperText: _pricing != null
+                        ? widget.isRushOrder && _pricing!.rushOrderPrice != null
+                            ? 'Rush price: ₹${_pricing!.rushOrderPrice}'
+                            : 'Regular price: ₹${_pricing!.price}'
+                        : 'Manual price entry',
+                    helperMaxLines: 2,
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter price';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid price';
+                    }
+                    return null;
+                  },
+                ),
+
+                if (widget.isRushOrder)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        Icon(Icons.flash_on, size: 16, color: Colors.orange[700]),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Rush Order',
+                          style: TextStyle(
+                            color: Colors.orange[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _quantityController,
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter quantity';
-                }
-                if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                  return 'Please enter a valid quantity';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _priceController,
-              decoration: const InputDecoration(
-                labelText: 'Unit Price',
-                border: OutlineInputBorder(),
-                prefixText: '₹',
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter price';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Please enter a valid price';
-                }
-                return null;
-              },
-            ),
-          ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                widget.onAdd(_OrderItemEntry(
+                  serviceId: _selectedService!.id!,
+                  serviceName: _selectedService!.serviceName,
+                  itemTypeId: _selectedItemType!.id!,
+                  itemTypeName: _selectedItemType!.itemName,
+                  quantity: int.parse(_quantityController.text),
+                  unitPrice: double.parse(_priceController.text),
+                ));
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              widget.onAdd(_OrderItemEntry(
-                serviceId: _selectedService!.id!,
-                serviceName: _selectedService!.serviceName,
-                quantity: int.parse(_quantityController.text),
-                unitPrice: double.parse(_priceController.text),
-              ));
-              Navigator.pop(context);
-            }
-          },
-          child: const Text('Add'),
-        ),
-      ],
     );
   }
 }

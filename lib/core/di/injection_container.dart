@@ -52,6 +52,7 @@ import '../../presentation/blocs/order/order_bloc.dart';
 // Service
 import '../../data/datasources/local/service_local_datasource.dart';
 import '../../data/datasources/local/item_type_local_datasource.dart';
+import '../../data/datasources/local/service_pricing_local_datasource.dart';
 import '../../data/repositories/service_repository_impl.dart';
 import '../../domain/repositories/service_repository.dart';
 
@@ -70,6 +71,16 @@ import '../../domain/usecases/service/get_service_by_id.dart';
 import '../../domain/usecases/service/add_service.dart';
 import '../../domain/usecases/service/update_service.dart';
 import '../../presentation/blocs/service/service_bloc.dart';
+
+// Pricing Use Cases
+import '../../domain/usecases/pricing/get_all_service_pricing.dart';
+import '../../domain/usecases/pricing/get_service_pricing.dart';
+import '../../domain/usecases/pricing/get_pricing_by_service.dart';
+import '../../domain/usecases/pricing/get_pricing_by_item_type.dart';
+import '../../domain/usecases/pricing/add_service_pricing.dart';
+import '../../domain/usecases/pricing/update_service_pricing.dart';
+import '../../domain/usecases/pricing/delete_service_pricing.dart';
+import '../../presentation/blocs/pricing/pricing_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -134,6 +145,11 @@ Future<void> initializeDependencies() async {
     () => ItemTypeLocalDataSourceImpl(databaseHelper: getIt()),
   );
 
+  // Service Pricing
+  getIt.registerLazySingleton<ServicePricingLocalDataSource>(
+    () => ServicePricingLocalDataSourceImpl(databaseHelper: getIt()),
+  );
+
   // Payment
   getIt.registerLazySingleton<PaymentLocalDataSource>(
     () => PaymentLocalDataSourceImpl(databaseHelper: getIt()),
@@ -176,6 +192,7 @@ Future<void> initializeDependencies() async {
     () => ServiceRepositoryImpl(
       localDataSource: getIt(),
       itemTypeLocalDataSource: getIt(),
+      servicePricingLocalDataSource: getIt(),
     ),
   );
 
@@ -224,6 +241,15 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton(() => GetServiceById(getIt()));
   getIt.registerLazySingleton(() => AddService(getIt()));
   getIt.registerLazySingleton(() => UpdateService(getIt()));
+
+  // Pricing
+  getIt.registerLazySingleton(() => GetAllServicePricing(getIt()));
+  getIt.registerLazySingleton(() => GetServicePricing(getIt()));
+  getIt.registerLazySingleton(() => GetPricingByService(getIt()));
+  getIt.registerLazySingleton(() => GetPricingByItemType(getIt()));
+  getIt.registerLazySingleton(() => AddServicePricing(getIt()));
+  getIt.registerLazySingleton(() => UpdateServicePricing(getIt()));
+  getIt.registerLazySingleton(() => DeleteServicePricing(getIt()));
 
   // Payment
   getIt.registerLazySingleton(() => GetAllPayments(getIt()));
@@ -286,6 +312,19 @@ Future<void> initializeDependencies() async {
       getServiceById: getIt(),
       addService: getIt(),
       updateService: getIt(),
+    ),
+  );
+
+  // Pricing BLoC
+  getIt.registerFactory(
+    () => PricingBloc(
+      getAllServicePricing: getIt(),
+      getServicePricing: getIt(),
+      getPricingByService: getIt(),
+      getPricingByItemType: getIt(),
+      addServicePricing: getIt(),
+      updateServicePricing: getIt(),
+      deleteServicePricing: getIt(),
     ),
   );
 
