@@ -58,6 +58,17 @@ import '../../domain/repositories/service_repository.dart';
 import '../../data/datasources/local/payment_local_datasource.dart';
 import '../../data/repositories/payment_repository_impl.dart';
 import '../../domain/repositories/payment_repository.dart';
+import '../../domain/usecases/payment/get_all_payments.dart';
+import '../../domain/usecases/payment/get_payments_by_order.dart';
+import '../../domain/usecases/payment/add_payment.dart';
+import '../../presentation/blocs/payment/payment_bloc.dart';
+
+// Service Use Cases
+import '../../domain/usecases/service/get_all_services.dart';
+import '../../domain/usecases/service/get_service_by_id.dart';
+import '../../domain/usecases/service/add_service.dart';
+import '../../domain/usecases/service/update_service.dart';
+import '../../presentation/blocs/service/service_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -199,6 +210,17 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton(() => UpdateOrder(getIt()));
   getIt.registerLazySingleton(() => UpdateOrderStatus(getIt()));
 
+  // Service
+  getIt.registerLazySingleton(() => GetAllServices(getIt()));
+  getIt.registerLazySingleton(() => GetServiceById(getIt()));
+  getIt.registerLazySingleton(() => AddService(getIt()));
+  getIt.registerLazySingleton(() => UpdateService(getIt()));
+
+  // Payment
+  getIt.registerLazySingleton(() => GetAllPayments(getIt()));
+  getIt.registerLazySingleton(() => GetPaymentsByOrder(getIt()));
+  getIt.registerLazySingleton(() => AddPayment(getIt()));
+
   // ============================================================================
   // BLoCs
   // ============================================================================
@@ -245,6 +267,25 @@ Future<void> initializeDependencies() async {
       addOrder: getIt(),
       updateOrder: getIt(),
       updateOrderStatus: getIt(),
+    ),
+  );
+
+  // Service BLoC
+  getIt.registerFactory(
+    () => ServiceBloc(
+      getAllServices: getIt(),
+      getServiceById: getIt(),
+      addService: getIt(),
+      updateService: getIt(),
+    ),
+  );
+
+  // Payment BLoC
+  getIt.registerFactory(
+    () => PaymentBloc(
+      getAllPayments: getIt(),
+      getPaymentsByOrder: getIt(),
+      addPayment: getIt(),
     ),
   );
 }

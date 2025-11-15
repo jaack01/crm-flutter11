@@ -6,12 +6,17 @@ import '../blocs/customer/customer_bloc.dart';
 import '../blocs/settings/settings_bloc.dart';
 import '../blocs/backup/backup_bloc.dart';
 import '../blocs/order/order_bloc.dart';
+import '../blocs/service/service_bloc.dart';
+import '../blocs/payment/payment_bloc.dart';
 import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/customers/customers_page.dart';
 import '../pages/customers/customer_form_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/orders/orders_page.dart';
+import '../pages/orders/create_order_page.dart';
+import '../pages/services/services_page.dart';
+import '../pages/payments/payments_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -28,6 +33,7 @@ class AppRouter {
   static const String orderDetail = '/orders/:id';
   static const String addOrder = '/orders/add';
   static const String editOrder = '/orders/edit/:id';
+  static const String services = '/services';
   static const String payments = '/payments';
   static const String inventory = '/inventory';
   static const String employees = '/employees';
@@ -109,6 +115,59 @@ class AppRouter {
             return BlocProvider<OrderBloc>(
               create: (context) => getIt<OrderBloc>(),
               child: const OrdersPage(),
+            );
+          },
+        ),
+
+        // Add Order
+        GoRoute(
+          path: addOrder,
+          name: 'add_order',
+          builder: (BuildContext context, GoRouterState state) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<OrderBloc>(
+                  create: (context) => getIt<OrderBloc>(),
+                ),
+                BlocProvider<CustomerBloc>(
+                  create: (context) => getIt<CustomerBloc>(),
+                ),
+                BlocProvider<ServiceBloc>(
+                  create: (context) => getIt<ServiceBloc>(),
+                ),
+              ],
+              child: const CreateOrderPage(),
+            );
+          },
+        ),
+
+        // Services
+        GoRoute(
+          path: services,
+          name: 'services',
+          builder: (BuildContext context, GoRouterState state) {
+            return BlocProvider<ServiceBloc>(
+              create: (context) => getIt<ServiceBloc>(),
+              child: const ServicesPage(),
+            );
+          },
+        ),
+
+        // Payments
+        GoRoute(
+          path: payments,
+          name: 'payments',
+          builder: (BuildContext context, GoRouterState state) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<PaymentBloc>(
+                  create: (context) => getIt<PaymentBloc>(),
+                ),
+                BlocProvider<OrderBloc>(
+                  create: (context) => getIt<OrderBloc>(),
+                ),
+              ],
+              child: const PaymentsPage(),
             );
           },
         ),

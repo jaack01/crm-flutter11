@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/order.dart';
@@ -135,9 +136,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 title: 'No Orders Found',
                 message: 'Start by creating your first order',
                 actionLabel: 'Create Order',
-                onAction: () {
-                  // TODO: Navigate to create order
-                },
+                onAction: () => context.push('/orders/add'),
               );
             }
 
@@ -160,12 +159,7 @@ class _OrdersPageState extends State<OrdersPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to create order
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Create order coming soon')),
-          );
-        },
+        onPressed: () => context.push('/orders/add'),
         child: const Icon(Icons.add),
       ),
     );
