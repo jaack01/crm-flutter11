@@ -198,6 +198,81 @@ class DatabaseTables {
     )
   ''';
 
+  /// Shop settings table
+  static const String createShopSettingsTable = '''
+    CREATE TABLE shop_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      shop_name TEXT NOT NULL,
+      shop_address TEXT,
+      shop_phone TEXT,
+      shop_email TEXT,
+      shop_logo TEXT,
+      gst_number TEXT,
+      tax_rate REAL DEFAULT 0,
+      currency TEXT DEFAULT 'INR',
+      currency_symbol TEXT DEFAULT '₹',
+      receipt_header TEXT,
+      receipt_footer TEXT,
+      print_logo_on_receipt INTEGER DEFAULT 1,
+      enable_gst INTEGER DEFAULT 0,
+      enable_sms INTEGER DEFAULT 0,
+      enable_email INTEGER DEFAULT 0,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  ''';
+
+  /// Notification settings table
+  static const String createNotificationSettingsTable = '''
+    CREATE TABLE notification_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      enable_notifications INTEGER DEFAULT 1,
+      notify_order_ready INTEGER DEFAULT 1,
+      notify_payment_due INTEGER DEFAULT 1,
+      notify_delivery INTEGER DEFAULT 1,
+      notify_low_stock INTEGER DEFAULT 1,
+      notify_new_order INTEGER DEFAULT 1,
+      payment_reminder_days INTEGER DEFAULT 3,
+      notification_sound TEXT DEFAULT 'default',
+      vibrate INTEGER DEFAULT 1,
+      quiet_hours_start TEXT DEFAULT '22:00',
+      quiet_hours_end TEXT DEFAULT '08:00',
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  ''';
+
+  /// Notifications table
+  static const String createNotificationsTable = '''
+    CREATE TABLE notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      type TEXT NOT NULL,
+      reference_id INTEGER,
+      scheduled_time TEXT NOT NULL,
+      is_delivered INTEGER DEFAULT 0,
+      is_read INTEGER DEFAULT 0,
+      payload TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  ''';
+
+  /// Backup history table
+  static const String createBackupHistoryTable = '''
+    CREATE TABLE backup_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      backup_date TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      backup_type TEXT DEFAULT 'full',
+      customers_count INTEGER DEFAULT 0,
+      orders_count INTEGER DEFAULT 0,
+      items_count INTEGER DEFAULT 0,
+      notes TEXT,
+      is_auto_backup INTEGER DEFAULT 0
+    )
+  ''';
+
   // ============================================================================
   // INDEX CREATION STATEMENTS
   // ============================================================================
@@ -219,6 +294,17 @@ class DatabaseTables {
   static const String createPaymentsIndexes = '''
     CREATE INDEX idx_payments_order_id ON payments(order_id);
     CREATE INDEX idx_payments_payment_date ON payments(payment_date);
+  ''';
+
+  static const String createNotificationsIndexes = '''
+    CREATE INDEX idx_notifications_type ON notifications(type);
+    CREATE INDEX idx_notifications_scheduled_time ON notifications(scheduled_time);
+    CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+  ''';
+
+  static const String createBackupHistoryIndexes = '''
+    CREATE INDEX idx_backup_history_backup_date ON backup_history(backup_date);
+    CREATE INDEX idx_backup_history_backup_type ON backup_history(backup_type);
   ''';
 
   // ============================================================================
@@ -294,5 +380,61 @@ class DatabaseTables {
     ('payment_reminder_notification', '1'),
     ('default_delivery_days', '3'),
     ('rush_order_premium_percent', '50');
+  ''';
+
+  /// Insert default shop settings
+  static const String insertDefaultShopSettings = '''
+    INSERT INTO shop_settings (
+      shop_name,
+      tax_rate,
+      currency,
+      currency_symbol,
+      receipt_header,
+      receipt_footer,
+      print_logo_on_receipt,
+      enable_gst,
+      enable_sms,
+      enable_email
+    ) VALUES (
+      'My Laundry Shop',
+      18.0,
+      'INR',
+      '₹',
+      'Thank you for your business!',
+      'Visit again!',
+      1,
+      0,
+      0,
+      0
+    );
+  ''';
+
+  /// Insert default notification settings
+  static const String insertDefaultNotificationSettings = '''
+    INSERT INTO notification_settings (
+      enable_notifications,
+      notify_order_ready,
+      notify_payment_due,
+      notify_delivery,
+      notify_low_stock,
+      notify_new_order,
+      payment_reminder_days,
+      notification_sound,
+      vibrate,
+      quiet_hours_start,
+      quiet_hours_end
+    ) VALUES (
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3,
+      'default',
+      1,
+      '22:00',
+      '08:00'
+    );
   ''';
 }

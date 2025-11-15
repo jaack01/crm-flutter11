@@ -64,16 +64,24 @@ class DatabaseHelper {
     batch.execute(DatabaseTables.createStockTransactionsTable);
     batch.execute(DatabaseTables.createExpensesTable);
     batch.execute(DatabaseTables.createSettingsTable);
+    batch.execute(DatabaseTables.createShopSettingsTable);
+    batch.execute(DatabaseTables.createNotificationSettingsTable);
+    batch.execute(DatabaseTables.createNotificationsTable);
+    batch.execute(DatabaseTables.createBackupHistoryTable);
 
     // Create indexes for better performance
     batch.execute(DatabaseTables.createCustomersIndexes);
     batch.execute(DatabaseTables.createOrdersIndexes);
     batch.execute(DatabaseTables.createPaymentsIndexes);
+    batch.execute(DatabaseTables.createNotificationsIndexes);
+    batch.execute(DatabaseTables.createBackupHistoryIndexes);
 
     // Insert default data
     batch.execute(DatabaseTables.insertDefaultServices);
     batch.execute(DatabaseTables.insertDefaultItemTypes);
     batch.execute(DatabaseTables.insertDefaultSettings);
+    batch.execute(DatabaseTables.insertDefaultShopSettings);
+    batch.execute(DatabaseTables.insertDefaultNotificationSettings);
 
     await batch.commit(noResult: true);
   }

@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/di/injection_container.dart';
 import '../blocs/customer/customer_bloc.dart';
+import '../blocs/settings/settings_bloc.dart';
+import '../blocs/backup/backup_bloc.dart';
 import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/customers/customers_page.dart';
 import '../pages/customers/customer_form_page.dart';
+import '../pages/settings/settings_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -73,6 +76,25 @@ class AppRouter {
             return BlocProvider<CustomerBloc>(
               create: (context) => getIt<CustomerBloc>(),
               child: const CustomerFormPage(),
+            );
+          },
+        ),
+
+        // Settings
+        GoRoute(
+          path: settings,
+          name: 'settings',
+          builder: (BuildContext context, GoRouterState state) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<SettingsBloc>(
+                  create: (context) => getIt<SettingsBloc>(),
+                ),
+                BlocProvider<BackupBloc>(
+                  create: (context) => getIt<BackupBloc>(),
+                ),
+              ],
+              child: const SettingsPage(),
             );
           },
         ),
