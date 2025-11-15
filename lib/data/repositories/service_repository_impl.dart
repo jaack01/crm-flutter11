@@ -5,12 +5,18 @@ import '../../domain/entities/item_type.dart';
 import '../../domain/entities/service_pricing.dart';
 import '../../domain/repositories/service_repository.dart';
 import '../datasources/local/service_local_datasource.dart';
+import '../datasources/local/item_type_local_datasource.dart';
 import '../models/service_model.dart';
+import '../models/item_type_model.dart';
 
 class ServiceRepositoryImpl implements ServiceRepository {
   final ServiceLocalDataSource localDataSource;
+  final ItemTypeLocalDataSource? itemTypeLocalDataSource;
 
-  ServiceRepositoryImpl({required this.localDataSource});
+  ServiceRepositoryImpl({
+    required this.localDataSource,
+    this.itemTypeLocalDataSource,
+  });
 
   @override
   Future<Either<Failure, List<Service>>> getAllServices() async {
@@ -60,30 +66,72 @@ class ServiceRepositoryImpl implements ServiceRepository {
     return Left(DatabaseFailure('Not implemented'));
   }
 
-  // Item Type operations - Simplified (not fully implemented)
+  // Item Type operations
   @override
   Future<Either<Failure, List<ItemType>>> getAllItemTypes() async {
-    return Left(DatabaseFailure('Not implemented'));
+    if (itemTypeLocalDataSource == null) {
+      return Left(DatabaseFailure('Item Type data source not initialized'));
+    }
+    try {
+      final result = await itemTypeLocalDataSource!.getAllItemTypes();
+      return Right(result.map((model) => model.toEntity()).toList());
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, ItemType>> getItemTypeById(int id) async {
-    return Left(DatabaseFailure('Not implemented'));
+    if (itemTypeLocalDataSource == null) {
+      return Left(DatabaseFailure('Item Type data source not initialized'));
+    }
+    try {
+      final result = await itemTypeLocalDataSource!.getItemTypeById(id);
+      return Right(result.toEntity());
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, List<ItemType>>> getItemTypesByCategory(String category) async {
-    return Left(DatabaseFailure('Not implemented'));
+    if (itemTypeLocalDataSource == null) {
+      return Left(DatabaseFailure('Item Type data source not initialized'));
+    }
+    try {
+      final result = await itemTypeLocalDataSource!.getItemTypesByCategory(category);
+      return Right(result.map((model) => model.toEntity()).toList());
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, ItemType>> addItemType(ItemType itemType) async {
-    return Left(DatabaseFailure('Not implemented'));
+    if (itemTypeLocalDataSource == null) {
+      return Left(DatabaseFailure('Item Type data source not initialized'));
+    }
+    try {
+      final model = ItemTypeModel.fromEntity(itemType);
+      final result = await itemTypeLocalDataSource!.addItemType(model);
+      return Right(result.toEntity());
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, ItemType>> updateItemType(ItemType itemType) async {
-    return Left(DatabaseFailure('Not implemented'));
+    if (itemTypeLocalDataSource == null) {
+      return Left(DatabaseFailure('Item Type data source not initialized'));
+    }
+    try {
+      final model = ItemTypeModel.fromEntity(itemType);
+      await itemTypeLocalDataSource!.updateItemType(model);
+      return Right(itemType);
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
   }
 
   @override

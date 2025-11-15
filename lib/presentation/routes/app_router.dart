@@ -15,8 +15,10 @@ import '../pages/customers/customer_form_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/orders/orders_page.dart';
 import '../pages/orders/create_order_page.dart';
+import '../pages/orders/order_details_page.dart';
 import '../pages/services/services_page.dart';
 import '../pages/payments/payments_page.dart';
+import '../pages/item_types/item_types_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -34,6 +36,7 @@ class AppRouter {
   static const String addOrder = '/orders/add';
   static const String editOrder = '/orders/edit/:id';
   static const String services = '/services';
+  static const String itemTypes = '/item-types';
   static const String payments = '/payments';
   static const String inventory = '/inventory';
   static const String employees = '/employees';
@@ -141,6 +144,20 @@ class AppRouter {
           },
         ),
 
+        // Order Details
+        GoRoute(
+          path: orderDetail,
+          name: 'order_detail',
+          builder: (BuildContext context, GoRouterState state) {
+            final idParam = state.pathParameters['id'];
+            final orderId = int.tryParse(idParam ?? '0') ?? 0;
+            return BlocProvider<OrderBloc>(
+              create: (context) => getIt<OrderBloc>(),
+              child: OrderDetailsPage(orderId: orderId),
+            );
+          },
+        ),
+
         // Services
         GoRoute(
           path: services,
@@ -149,6 +166,18 @@ class AppRouter {
             return BlocProvider<ServiceBloc>(
               create: (context) => getIt<ServiceBloc>(),
               child: const ServicesPage(),
+            );
+          },
+        ),
+
+        // Item Types
+        GoRoute(
+          path: itemTypes,
+          name: 'item_types',
+          builder: (BuildContext context, GoRouterState state) {
+            return BlocProvider<ServiceBloc>(
+              create: (context) => getIt<ServiceBloc>(),
+              child: const ItemTypesPage(),
             );
           },
         ),

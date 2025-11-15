@@ -51,6 +51,7 @@ import '../../presentation/blocs/order/order_bloc.dart';
 
 // Service
 import '../../data/datasources/local/service_local_datasource.dart';
+import '../../data/datasources/local/item_type_local_datasource.dart';
 import '../../data/repositories/service_repository_impl.dart';
 import '../../domain/repositories/service_repository.dart';
 
@@ -128,6 +129,11 @@ Future<void> initializeDependencies() async {
     () => ServiceLocalDataSourceImpl(databaseHelper: getIt()),
   );
 
+  // Item Type
+  getIt.registerLazySingleton<ItemTypeLocalDataSource>(
+    () => ItemTypeLocalDataSourceImpl(databaseHelper: getIt()),
+  );
+
   // Payment
   getIt.registerLazySingleton<PaymentLocalDataSource>(
     () => PaymentLocalDataSourceImpl(databaseHelper: getIt()),
@@ -167,7 +173,10 @@ Future<void> initializeDependencies() async {
 
   // Service
   getIt.registerLazySingleton<ServiceRepository>(
-    () => ServiceRepositoryImpl(localDataSource: getIt()),
+    () => ServiceRepositoryImpl(
+      localDataSource: getIt(),
+      itemTypeLocalDataSource: getIt(),
+    ),
   );
 
   // Payment

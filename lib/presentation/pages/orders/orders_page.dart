@@ -235,8 +235,7 @@ class _OrdersPageState extends State<OrdersPage> {
           backgroundColor: statusColor.withOpacity(0.2),
         ),
         onTap: () {
-          // TODO: Navigate to order details
-          context.read<OrderBloc>().add(LoadOrderById(order.id!));
+          context.push('/orders/${order.id}');
         },
       ),
     );
