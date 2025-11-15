@@ -47,6 +47,17 @@ A production-grade CRM application for laundry shops built with Flutter and SQLi
 - ✅ Notification Service integration
 - ✅ Backup history tracking
 
+### Phase 5 - Order Management System (Completed ✅)
+- ✅ Complete Order CRUD operations
+- ✅ Order items management
+- ✅ Customer integration with orders
+- ✅ Order status workflow (Received, Processing, Ready, Delivered, Cancelled)
+- ✅ Search and filtering by status
+- ✅ Auto order number generation
+- ✅ Financial tracking (subtotal, discount, tax, payments)
+- ✅ Orders list UI with status chips
+- ✅ OrderBloc with 7 events and 6 states
+
 ## Tech Stack
 
 - **Framework:** Flutter 3.x

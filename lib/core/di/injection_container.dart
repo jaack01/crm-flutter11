@@ -34,6 +34,20 @@ import '../../domain/usecases/backup/restore_backup.dart';
 import '../../domain/usecases/backup/get_all_backups.dart';
 import '../../presentation/blocs/backup/backup_bloc.dart';
 
+// Order
+import '../../data/datasources/local/order_local_datasource.dart';
+import '../../data/repositories/order_repository_impl.dart';
+import '../../domain/repositories/order_repository.dart';
+import '../../domain/usecases/order/get_all_orders.dart';
+import '../../domain/usecases/order/get_order_by_id.dart';
+import '../../domain/usecases/order/get_orders_by_customer.dart';
+import '../../domain/usecases/order/get_orders_by_status.dart';
+import '../../domain/usecases/order/search_orders.dart';
+import '../../domain/usecases/order/add_order.dart';
+import '../../domain/usecases/order/update_order.dart';
+import '../../domain/usecases/order/update_order_status.dart';
+import '../../presentation/blocs/order/order_bloc.dart';
+
 final GetIt getIt = GetIt.instance;
 
 /// Initialize dependency injection
@@ -77,6 +91,11 @@ Future<void> initializeDependencies() async {
     () => BackupLocalDataSourceImpl(databaseHelper: getIt()),
   );
 
+  // Order
+  getIt.registerLazySingleton<OrderLocalDataSource>(
+    () => OrderLocalDataSourceImpl(databaseHelper: getIt()),
+  );
+
   // ============================================================================
   // Repositories
   // ============================================================================
@@ -104,6 +123,11 @@ Future<void> initializeDependencies() async {
     () => BackupRepositoryImpl(localDataSource: getIt()),
   );
 
+  // Order
+  getIt.registerLazySingleton<OrderRepository>(
+    () => OrderRepositoryImpl(localDataSource: getIt()),
+  );
+
   // ============================================================================
   // Use Cases
   // ============================================================================
@@ -128,6 +152,16 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton(() => CreateBackup(getIt()));
   getIt.registerLazySingleton(() => RestoreBackup(getIt()));
   getIt.registerLazySingleton(() => GetAllBackups(getIt()));
+
+  // Order
+  getIt.registerLazySingleton(() => GetAllOrders(getIt()));
+  getIt.registerLazySingleton(() => GetOrderById(getIt()));
+  getIt.registerLazySingleton(() => GetOrdersByCustomer(getIt()));
+  getIt.registerLazySingleton(() => GetOrdersByStatus(getIt()));
+  getIt.registerLazySingleton(() => SearchOrders(getIt()));
+  getIt.registerLazySingleton(() => AddOrder(getIt()));
+  getIt.registerLazySingleton(() => UpdateOrder(getIt()));
+  getIt.registerLazySingleton(() => UpdateOrderStatus(getIt()));
 
   // ============================================================================
   // BLoCs
@@ -162,6 +196,19 @@ Future<void> initializeDependencies() async {
       createBackup: getIt(),
       restoreBackup: getIt(),
       getAllBackups: getIt(),
+    ),
+  );
+
+  // Order BLoC
+  getIt.registerFactory(
+    () => OrderBloc(
+      getAllOrders: getIt(),
+      getOrderById: getIt(),
+      getOrdersByStatus: getIt(),
+      searchOrders: getIt(),
+      addOrder: getIt(),
+      updateOrder: getIt(),
+      updateOrderStatus: getIt(),
     ),
   );
 }

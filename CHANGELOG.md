@@ -230,6 +230,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 37 files created/updated
 - ~3,500 lines of code
 
+## [1.4.0] - 2025-11-15
+
+### Added - Phase 5: Order Management System
+
+#### Order Management
+- Order domain entities and repository (20 operations)
+- OrderModel and OrderItemModel with JSON serialization
+- OrderLocalDataSource with SQL joins for customer data
+- OrderRepositoryImpl with complete CRUD operations
+- Auto order number generation (ORD000001 format)
+- Transaction-based order creation with items
+
+#### Use Cases (8)
+- GetAllOrders - Retrieve all orders with customer names
+- GetOrderById - Get order details
+- GetOrdersByCustomer - Filter by customer
+- GetOrdersByStatus - Filter by status
+- SearchOrders - Search by order number, customer name, phone
+- AddOrder - Create order with multiple items
+- UpdateOrder - Update order information
+- UpdateOrderStatus - Change order status
+
+#### BLoC Layer
+- OrderBloc with 7 events and 6 states
+- Event handlers for all order operations
+- State management with loading, success, error states
+
+#### UI Layer
+- OrdersPage with search and status filtering
+- Status filter chips (All + 5 statuses)
+- Status-colored order cards
+- Pull-to-refresh functionality
+- Empty state handling
+- Customer name display
+- Order detail preview
+
+#### Integration
+- Updated dependency injection with Order components
+- Added Orders route to navigation
+- Customer data integration via SQL joins
+
+#### Financial Management
+- Subtotal, discount, tax calculation support
+- Payment tracking (advance, balance)
+- Payment status (Pending, Partial, Paid)
+- Revenue and outstanding calculations
+
+### Statistics
+- 8 use cases created
+- 19 files created/updated
+- ~2,000 lines of code
+- 20 repository methods
+- 7 BLoC events, 6 states
+
 ## [Unreleased]
 
 ### Planned for Phase 3+ (Future)

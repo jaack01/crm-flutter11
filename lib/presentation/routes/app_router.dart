@@ -5,11 +5,13 @@ import '../../core/di/injection_container.dart';
 import '../blocs/customer/customer_bloc.dart';
 import '../blocs/settings/settings_bloc.dart';
 import '../blocs/backup/backup_bloc.dart';
+import '../blocs/order/order_bloc.dart';
 import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/customers/customers_page.dart';
 import '../pages/customers/customer_form_page.dart';
 import '../pages/settings/settings_page.dart';
+import '../pages/orders/orders_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -95,6 +97,18 @@ class AppRouter {
                 ),
               ],
               child: const SettingsPage(),
+            );
+          },
+        ),
+
+        // Orders
+        GoRoute(
+          path: orders,
+          name: 'orders',
+          builder: (BuildContext context, GoRouterState state) {
+            return BlocProvider<OrderBloc>(
+              create: (context) => getIt<OrderBloc>(),
+              child: const OrdersPage(),
             );
           },
         ),

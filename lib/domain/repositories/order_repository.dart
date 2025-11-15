@@ -11,6 +11,7 @@ abstract class OrderRepository {
   Future<Either<Failure, List<Order>>> getOrdersByCustomer(int customerId);
   Future<Either<Failure, List<Order>>> getOrdersByStatus(String status);
   Future<Either<Failure, List<Order>>> getOrdersByDateRange(DateTime startDate, DateTime endDate);
+  Future<Either<Failure, List<Order>>> searchOrders(String query);
   Future<Either<Failure, Order>> addOrder(Order order, List<OrderItem> items);
   Future<Either<Failure, Order>> updateOrder(Order order);
   Future<Either<Failure, void>> updateOrderStatus(int orderId, String status);
