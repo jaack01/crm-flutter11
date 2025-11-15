@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/statistics_service.dart';
+import '../../../core/di/injection_container.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -27,7 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
     _NavigationItem(
       icon: Icons.shopping_bag,
       label: 'Orders',
-      route: null,
+      route: '/orders',
     ),
     _NavigationItem(
       icon: Icons.inventory,
@@ -37,7 +39,7 @@ class _DashboardPageState extends State<DashboardPage> {
     _NavigationItem(
       icon: Icons.settings,
       label: 'Settings',
-      route: null,
+      route: '/settings',
     ),
   ];
 
@@ -111,145 +113,230 @@ class _NavigationItem {
 }
 
 // Dashboard Tab
-class _DashboardTab extends StatelessWidget {
+class _DashboardTab extends StatefulWidget {
   const _DashboardTab({Key? key}) : super(key: key);
 
   @override
+  State<_DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<_DashboardTab> {
+  final StatisticsService _statisticsService = getIt<StatisticsService>();
+  Map<String, dynamic>? _stats;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatistics();
+  }
+
+  Future<void> _loadStatistics() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final stats = await _statisticsService.getDashboardStatistics();
+      setState(() {
+        _stats = stats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading statistics: $e')),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome Card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.local_laundry_service,
-                    size: 48,
-                    color: AppColors.primaryColor,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome to ${AppConstants.appName}',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage your laundry business efficiently',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                        ),
-                      ],
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadStatistics,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.local_laundry_service,
+                      size: 48,
+                      color: AppColors.primaryColor,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome to ${AppConstants.appName}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage your laundry business efficiently',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Statistics Cards
-          Text(
-            'Today\'s Overview',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.5,
-            children: const [
-              _StatCard(
-                title: 'Orders',
-                value: '0',
-                icon: Icons.shopping_bag,
-                color: AppColors.primaryColor,
-              ),
-              _StatCard(
-                title: 'Revenue',
-                value: '₹0',
-                icon: Icons.attach_money,
-                color: AppColors.successColor,
-              ),
-              _StatCard(
-                title: 'Pending',
-                value: '0',
-                icon: Icons.pending,
-                color: AppColors.warningColor,
-              ),
-              _StatCard(
-                title: 'Customers',
-                value: '0',
-                icon: Icons.people,
-                color: AppColors.secondaryColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+            // Statistics Cards
+            Text(
+              'Today\'s Overview',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.5,
+              children: [
+                _StatCard(
+                  title: 'Orders',
+                  value: '${_stats?['today_orders'] ?? 0}',
+                  icon: Icons.shopping_bag,
+                  color: AppColors.primaryColor,
+                ),
+                _StatCard(
+                  title: 'Revenue',
+                  value: '₹${(_stats?['today_revenue'] ?? 0.0).toStringAsFixed(2)}',
+                  icon: Icons.attach_money,
+                  color: AppColors.successColor,
+                ),
+                _StatCard(
+                  title: 'Pending',
+                  value: '${_stats?['pending_orders'] ?? 0}',
+                  icon: Icons.pending,
+                  color: AppColors.warningColor,
+                ),
+                _StatCard(
+                  title: 'Customers',
+                  value: '${_stats?['total_customers'] ?? 0}',
+                  icon: Icons.people,
+                  color: AppColors.secondaryColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
 
-          // Quick Actions
-          Text(
-            'Quick Actions',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _QuickActionButton(
-                icon: Icons.add_shopping_cart,
-                label: 'New Order',
-                color: AppColors.primaryColor,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('New Order - Coming in Phase 2+')),
-                  );
-                },
+            // Order Status Overview
+            Text(
+              'Order Status',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _StatusRow(
+                      label: 'Received',
+                      count: _stats?['received_orders'] ?? 0,
+                      color: AppColors.statusReceived,
+                    ),
+                    const Divider(),
+                    _StatusRow(
+                      label: 'Processing',
+                      count: _stats?['processing_orders'] ?? 0,
+                      color: AppColors.statusProcessing,
+                    ),
+                    const Divider(),
+                    _StatusRow(
+                      label: 'Ready',
+                      count: _stats?['ready_orders'] ?? 0,
+                      color: AppColors.statusReady,
+                    ),
+                    const Divider(),
+                    _StatusRow(
+                      label: 'Outstanding',
+                      count: '₹${(_stats?['total_outstanding'] ?? 0.0).toStringAsFixed(2)}',
+                      color: AppColors.errorColor,
+                      isAmount: true,
+                    ),
+                  ],
+                ),
               ),
-              _QuickActionButton(
-                icon: Icons.person_add,
-                label: 'Add Customer',
-                color: AppColors.secondaryColor,
-                onPressed: () {
-                  context.push('/customers/add');
-                },
-              ),
-              _QuickActionButton(
-                icon: Icons.payment,
-                label: 'Record Payment',
-                color: AppColors.successColor,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Record Payment - Coming in Phase 2+')),
-                  );
-                },
-              ),
-              _QuickActionButton(
-                icon: Icons.assessment,
-                label: 'View Reports',
-                color: AppColors.infoColor,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('View Reports - Coming in Phase 3+')),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 24),
+
+            // Quick Actions
+            Text(
+              'Quick Actions',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _QuickActionButton(
+                  icon: Icons.add_shopping_cart,
+                  label: 'New Order',
+                  color: AppColors.primaryColor,
+                  onPressed: () {
+                    context.push('/orders');
+                  },
+                ),
+                _QuickActionButton(
+                  icon: Icons.person_add,
+                  label: 'Add Customer',
+                  color: AppColors.secondaryColor,
+                  onPressed: () {
+                    context.push('/customers/add');
+                  },
+                ),
+                _QuickActionButton(
+                  icon: Icons.payment,
+                  label: 'Record Payment',
+                  color: AppColors.successColor,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Record Payment - Coming soon')),
+                    );
+                  },
+                ),
+                _QuickActionButton(
+                  icon: Icons.assessment,
+                  label: 'View Reports',
+                  color: AppColors.infoColor,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('View Reports - Coming soon')),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -302,6 +389,55 @@ class _StatCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Status Row Widget
+class _StatusRow extends StatelessWidget {
+  final String label;
+  final dynamic count;
+  final Color color;
+  final bool isAmount;
+
+  const _StatusRow({
+    Key? key,
+    required this.label,
+    required this.count,
+    required this.color,
+    this.isAmount = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          Text(
+            isAmount ? count.toString() : count.toString(),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+          ),
+        ],
       ),
     );
   }

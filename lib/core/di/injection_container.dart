@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/statistics_service.dart';
 
 // Customer
 import '../../data/datasources/local/customer_local_datasource.dart';
@@ -48,6 +49,16 @@ import '../../domain/usecases/order/update_order.dart';
 import '../../domain/usecases/order/update_order_status.dart';
 import '../../presentation/blocs/order/order_bloc.dart';
 
+// Service
+import '../../data/datasources/local/service_local_datasource.dart';
+import '../../data/repositories/service_repository_impl.dart';
+import '../../domain/repositories/service_repository.dart';
+
+// Payment
+import '../../data/datasources/local/payment_local_datasource.dart';
+import '../../data/repositories/payment_repository_impl.dart';
+import '../../domain/repositories/payment_repository.dart';
+
 final GetIt getIt = GetIt.instance;
 
 /// Initialize dependency injection
@@ -66,6 +77,11 @@ Future<void> initializeDependencies() async {
   // Notification Service
   getIt.registerLazySingleton<NotificationService>(() => NotificationService.instance);
   await getIt<NotificationService>().initialize();
+
+  // Statistics Service
+  getIt.registerLazySingleton<StatisticsService>(
+    () => StatisticsService(databaseHelper: getIt()),
+  );
 
   // ============================================================================
   // Data Sources
@@ -94,6 +110,16 @@ Future<void> initializeDependencies() async {
   // Order
   getIt.registerLazySingleton<OrderLocalDataSource>(
     () => OrderLocalDataSourceImpl(databaseHelper: getIt()),
+  );
+
+  // Service
+  getIt.registerLazySingleton<ServiceLocalDataSource>(
+    () => ServiceLocalDataSourceImpl(databaseHelper: getIt()),
+  );
+
+  // Payment
+  getIt.registerLazySingleton<PaymentLocalDataSource>(
+    () => PaymentLocalDataSourceImpl(databaseHelper: getIt()),
   );
 
   // ============================================================================
@@ -126,6 +152,16 @@ Future<void> initializeDependencies() async {
   // Order
   getIt.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(localDataSource: getIt()),
+  );
+
+  // Service
+  getIt.registerLazySingleton<ServiceRepository>(
+    () => ServiceRepositoryImpl(localDataSource: getIt()),
+  );
+
+  // Payment
+  getIt.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(localDataSource: getIt()),
   );
 
   // ============================================================================
