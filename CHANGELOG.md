@@ -85,10 +85,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project structure documentation
 - Development guidelines
 
+## [1.1.0] - 2025-11-15
+
+### Added - Phase 2: Customer Management Module
+
+#### Domain Layer
+- Customer, Service, ItemType, ServicePricing, Order, OrderItem, and Payment entities
+- Repository interfaces for Customer, Service, Order, and Payment
+- Complete separation of business logic from implementation
+
+#### Data Layer - Customer Module
+- CustomerModel with JSON serialization
+- CustomerLocalDataSource with full CRUD operations
+- CustomerRepositoryImpl with Either<Failure, T> pattern
+- Auto customer code generation
+- Soft delete implementation
+
+#### Use Cases (8 Customer Operations)
+- GetAllCustomers, GetCustomerById, SearchCustomers, GetCustomersByType
+- AddCustomer, UpdateCustomer, DeleteCustomer, GetCustomerCount
+
+#### Presentation - BLoC & UI
+- CustomerBloc with 7 events and 6 states
+- CustomersPage with search, filter, pull-to-refresh
+- CustomerFormPage with validation
+- Common widgets (Loading, Error, EmptyState)
+- Customer cards with type-based styling
+
+#### Integration
+- Updated dependency injection container
+- Added Customer routes to GoRouter with BLoC providers
+- Dashboard navigation to Customers module
+- Quick action to add customer
+
+#### Documentation
+- PHASE2_IMPLEMENTATION.md - Technical guide
+- PHASE2_COMPLETE.md - Completion summary
+- Updated README and DEVELOPMENT docs
+
+### Statistics
+- 25 new files created
+- ~3,500 lines of code
+- Complete Clean Architecture demo
+
 ## [Unreleased]
 
-### Planned for Phase 2 (Weeks 2-4)
-- Customer management module
+### Planned for Phase 2+ (Future)
 - Order management module
 - Service and pricing configuration
 - Billing and payment processing

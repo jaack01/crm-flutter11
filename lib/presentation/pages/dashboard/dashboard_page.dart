@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -16,29 +17,40 @@ class _DashboardPageState extends State<DashboardPage> {
     _NavigationItem(
       icon: Icons.dashboard,
       label: 'Dashboard',
-      page: const _DashboardTab(),
+      route: null,
     ),
     _NavigationItem(
       icon: Icons.people,
       label: 'Customers',
-      page: const _ComingSoonTab(title: 'Customers'),
+      route: '/customers',
     ),
     _NavigationItem(
       icon: Icons.shopping_bag,
       label: 'Orders',
-      page: const _ComingSoonTab(title: 'Orders'),
+      route: null,
     ),
     _NavigationItem(
       icon: Icons.inventory,
       label: 'Inventory',
-      page: const _ComingSoonTab(title: 'Inventory'),
+      route: null,
     ),
     _NavigationItem(
       icon: Icons.settings,
       label: 'Settings',
-      page: const _ComingSoonTab(title: 'Settings'),
+      route: null,
     ),
   ];
+
+  void _onNavItemTapped(int index) {
+    final item = _navigationItems[index];
+    if (item.route != null) {
+      context.push(item.route!);
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,27 +61,27 @@ class _DashboardPageState extends State<DashboardPage> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // TODO: Navigate to notifications
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notifications - Coming soon!')),
+              );
             },
             tooltip: 'Notifications',
           ),
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // TODO: Navigate to profile
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile - Coming soon!')),
+              );
             },
             tooltip: 'Profile',
           ),
         ],
       ),
-      body: _navigationItems[_selectedIndex].page,
+      body: const _DashboardTab(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: _onNavItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primaryColor,
         unselectedItemColor: Colors.grey,
@@ -89,12 +101,12 @@ class _DashboardPageState extends State<DashboardPage> {
 class _NavigationItem {
   final IconData icon;
   final String label;
-  final Widget page;
+  final String? route;
 
   _NavigationItem({
     required this.icon,
     required this.label,
-    required this.page,
+    this.route,
   });
 }
 
@@ -196,26 +208,44 @@ class _DashboardTab extends StatelessWidget {
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: const [
+            children: [
               _QuickActionButton(
                 icon: Icons.add_shopping_cart,
                 label: 'New Order',
                 color: AppColors.primaryColor,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('New Order - Coming in Phase 2+')),
+                  );
+                },
               ),
               _QuickActionButton(
                 icon: Icons.person_add,
                 label: 'Add Customer',
                 color: AppColors.secondaryColor,
+                onPressed: () {
+                  context.push('/customers/add');
+                },
               ),
               _QuickActionButton(
                 icon: Icons.payment,
                 label: 'Record Payment',
                 color: AppColors.successColor,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Record Payment - Coming in Phase 2+')),
+                  );
+                },
               ),
               _QuickActionButton(
                 icon: Icons.assessment,
                 label: 'View Reports',
                 color: AppColors.infoColor,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('View Reports - Coming in Phase 3+')),
+                  );
+                },
               ),
             ],
           ),
@@ -282,12 +312,14 @@ class _QuickActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final VoidCallback onPressed;
 
   const _QuickActionButton({
     Key? key,
     required this.icon,
     required this.label,
     required this.color,
+    required this.onPressed,
   }) : super(key: key);
 
   @override
@@ -295,11 +327,7 @@ class _QuickActionButton extends StatelessWidget {
     return SizedBox(
       width: (MediaQuery.of(context).size.width - 48) / 2,
       child: ElevatedButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$label - Coming in Phase 2!')),
-          );
-        },
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           padding: const EdgeInsets.symmetric(vertical: 16),

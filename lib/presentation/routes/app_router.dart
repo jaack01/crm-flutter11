@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/di/injection_container.dart';
+import '../blocs/customer/customer_bloc.dart';
 import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
+import '../pages/customers/customers_page.dart';
+import '../pages/customers/customer_form_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -48,21 +53,31 @@ class AppRouter {
           },
         ),
 
-        // Customers routes (will be implemented in Phase 2)
-        // GoRoute(
-        //   path: customers,
-        //   name: 'customers',
-        //   builder: (context, state) => const CustomersPage(),
-        // ),
+        // Customers routes
+        GoRoute(
+          path: customers,
+          name: 'customers',
+          builder: (BuildContext context, GoRouterState state) {
+            return BlocProvider<CustomerBloc>(
+              create: (context) => getIt<CustomerBloc>(),
+              child: const CustomersPage(),
+            );
+          },
+        ),
 
-        // Orders routes (will be implemented in Phase 2)
-        // GoRoute(
-        //   path: orders,
-        //   name: 'orders',
-        //   builder: (context, state) => const OrdersPage(),
-        // ),
+        // Add Customer
+        GoRoute(
+          path: addCustomer,
+          name: 'add_customer',
+          builder: (BuildContext context, GoRouterState state) {
+            return BlocProvider<CustomerBloc>(
+              create: (context) => getIt<CustomerBloc>(),
+              child: const CustomerFormPage(),
+            );
+          },
+        ),
 
-        // More routes will be added in Phase 2
+        // More routes will be added in future phases
       ],
       errorBuilder: (BuildContext context, GoRouterState state) {
         return Scaffold(
