@@ -128,16 +128,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ~3,500 lines of code
 - Complete Clean Architecture demo
 
+## [1.2.0] - 2025-11-15
+
+### Added - Phase 3: Advanced Features - Domain Layer
+
+#### Domain Entities (5 new)
+- InventoryItem - Complete inventory tracking with stock levels
+- StockTransaction - Purchase, Usage, Adjustment tracking
+- Employee - Employee management with roles and compensation
+- Expense - Business expense categorization and tracking
+- DashboardStatistics - Comprehensive business metrics
+
+#### Repository Interfaces (3 new)
+- InventoryRepository - 16 operations for inventory and stock management
+- EmployeeRepository - 8 operations for employee management
+- StatisticsRepository - 6 operations for reports and analytics
+
+#### Documentation
+- PHASE3_IMPLEMENTATION_GUIDE.md - Complete implementation blueprint
+- PHASE3_FOUNDATION.md - Domain layer completion summary
+- Updated README with Phase 3 status
+
+### Statistics
+- 5 domain entities created
+- 3 repository interfaces (30 total methods)
+- ~400 lines of production-ready code
+- 2 comprehensive documentation files
+- Total domain entities: 12
+- Total repository interfaces: 7
+
 ## [Unreleased]
 
-### Planned for Phase 2+ (Future)
+### Planned for Phase 3+ (Future)
+- Inventory management - Full implementation (data layer, BLoC, UI)
+- Employee management - Full implementation (data layer, BLoC, UI)
+- Reports & Analytics - Dashboard and charts
+
+### Planned for Phase 4+ (Future)
 - Order management module
 - Service and pricing configuration
 - Billing and payment processing
-
-### Planned for Phase 3 (Weeks 5-6)
-- Inventory management
-- Employee management
 - Reports and analytics dashboard
 
 ### Planned for Phase 4 (Weeks 7-8)
