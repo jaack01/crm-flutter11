@@ -13,6 +13,7 @@ import '../pages/splash/splash_page.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/customers/customers_page.dart';
 import '../pages/customers/customer_form_page.dart';
+import '../pages/customers/customer_details_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/orders/orders_page.dart';
 import '../pages/orders/create_order_page.dart';
@@ -90,6 +91,39 @@ class AppRouter {
             return BlocProvider<CustomerBloc>(
               create: (context) => getIt<CustomerBloc>(),
               child: const CustomerFormPage(),
+            );
+          },
+        ),
+
+        // Customer Details
+        GoRoute(
+          path: customerDetail,
+          name: 'customer_detail',
+          builder: (BuildContext context, GoRouterState state) {
+            final customerId = int.parse(state.pathParameters['id']!);
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider<CustomerBloc>(
+                  create: (context) => getIt<CustomerBloc>(),
+                ),
+                BlocProvider<OrderBloc>(
+                  create: (context) => getIt<OrderBloc>(),
+                ),
+              ],
+              child: CustomerDetailsPage(customerId: customerId),
+            );
+          },
+        ),
+
+        // Edit Customer
+        GoRoute(
+          path: editCustomer,
+          name: 'edit_customer',
+          builder: (BuildContext context, GoRouterState state) {
+            final customerId = int.parse(state.pathParameters['id']!);
+            return BlocProvider<CustomerBloc>(
+              create: (context) => getIt<CustomerBloc>(),
+              child: CustomerFormPage(customerId: customerId),
             );
           },
         ),
