@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/database_helper.dart';
 import '../services/notification_service.dart';
 import '../services/statistics_service.dart';
+import '../services/analytics_service.dart';
 
 // Customer
 import '../../data/datasources/local/customer_local_datasource.dart';
@@ -104,6 +105,11 @@ Future<void> initializeDependencies() async {
   // Statistics Service
   getIt.registerLazySingleton<StatisticsService>(
     () => StatisticsService(databaseHelper: getIt()),
+  );
+
+  // Analytics Service
+  getIt.registerLazySingleton<AnalyticsService>(
+    () => AnalyticsService(databaseHelper: getIt()),
   );
 
   // ============================================================================

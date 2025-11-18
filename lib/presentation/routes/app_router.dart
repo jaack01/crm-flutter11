@@ -22,6 +22,7 @@ import '../pages/services/services_page.dart';
 import '../pages/payments/payments_page.dart';
 import '../pages/item_types/item_types_page.dart';
 import '../pages/pricing/service_pricing_page.dart';
+import '../pages/reports/reports_page.dart';
 
 class AppRouter {
   // Prevent instantiation
@@ -257,6 +258,15 @@ class AppRouter {
               ],
               child: const PaymentsPage(),
             );
+          },
+        ),
+
+        // Reports & Analytics
+        GoRoute(
+          path: reports,
+          name: 'reports',
+          builder: (BuildContext context, GoRouterState state) {
+            return const ReportsPage();
           },
         ),
 
