@@ -4,6 +4,7 @@ import '../database/database_helper.dart';
 import '../services/notification_service.dart';
 import '../services/statistics_service.dart';
 import '../services/analytics_service.dart';
+import '../services/pdf_service.dart';
 
 // Customer
 import '../../data/datasources/local/customer_local_datasource.dart';
@@ -111,6 +112,9 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<AnalyticsService>(
     () => AnalyticsService(databaseHelper: getIt()),
   );
+
+  // PDF Service
+  getIt.registerLazySingleton<PdfService>(() => PdfService());
 
   // ============================================================================
   // Data Sources

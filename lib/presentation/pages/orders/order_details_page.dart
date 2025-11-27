@@ -5,8 +5,14 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/qr_service.dart';
+import '../../../core/services/pdf_service.dart';
+import '../../../core/di/injection_container.dart';
 import '../../../domain/entities/order.dart';
 import '../../../domain/entities/order_item.dart';
+import '../../../domain/entities/customer.dart';
+import '../../../domain/entities/shop_settings.dart';
+import '../../../domain/usecases/customer/customer_usecases.dart';
+import '../../../domain/usecases/settings/get_shop_settings.dart';
 import '../../blocs/order/order_bloc.dart';
 import '../../blocs/order/order_event.dart';
 import '../../blocs/order/order_state.dart';
@@ -51,6 +57,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             icon: const Icon(Icons.receipt_long),
             onPressed: _order != null ? () => _showInvoice() : null,
             tooltip: 'View Invoice',
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: _order != null ? () => _generatePdf() : null,
+            tooltip: 'Download PDF',
           ),
         ],
       ),
@@ -654,6 +665,79 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _generatePdf() async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Get dependencies
+      final pdfService = getIt<PdfService>();
+      final getCustomerById = getIt<GetCustomerById>();
+      final getShopSettings = getIt<GetShopSettings>();
+
+      // Fetch customer
+      final customerResult = await getCustomerById(_order!.customerId);
+      Customer? customer;
+      customerResult.fold(
+        (failure) => customer = null,
+        (c) => customer = c,
+      );
+
+      // Fetch shop settings
+      final settingsResult = await getShopSettings();
+      ShopSettings? settings;
+      settingsResult.fold(
+        (failure) => settings = null,
+        (s) => settings = s,
+      );
+
+      // Generate PDF
+      final pdfBytes = await pdfService.generateInvoicePdf(
+        order: _order!,
+        orderItems: _orderItems,
+        customer: customer ?? Customer(
+          customerCode: 'UNKNOWN',
+          firstName: _order!.customerName ?? 'Unknown',
+          phone: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        settings: settings,
+      );
+
+      // Close loading
+      if (mounted) Navigator.pop(context);
+
+      // Share PDF
+      final fileName = 'invoice_${_order!.orderNumber}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await pdfService.printPdf(pdfBytes, fileName);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invoice PDF generated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading if still open
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error generating PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showInvoice() {
